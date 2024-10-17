@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    name: Build
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate Changelog (Latest)
+        env:
+          OUTPUT: changelog/CHANGELOG.latest.md
+          GIT_CLIFF_REPOSITORY: _tmp.W8nAhH91eW
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPO: ${{ github.repository }}
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: ${{ github.action_path }}/cliff.toml
+          args: --latest --strip all
+          github_token: ${{ github.token }}
+      - name: Generate Changelog (Current)
+        env:
+          OUTPUT: changelog/CHANGELOG.current.md
+          GIT_CLIFF_REPOSITORY: _tmp.W8nAhH91eW
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPO: ${{ github.repository }}
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: ${{ github.action_path }}/cliff.toml
+          args: --current --strip all
+          github_token: ${{ github.token }}
+      - name: Generate Changelog (Unreleased)
+        env:
+          OUTPUT: changelog/CHANGELOG.unreleased.md
+          GIT_CLIFF_REPOSITORY: _tmp.W8nAhH91eW
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPO: ${{ github.repository }}
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: ${{ github.action_path }}/cliff.toml
+          args: --unreleased --strip all
+          github_token: ${{ github.token }}
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog/
